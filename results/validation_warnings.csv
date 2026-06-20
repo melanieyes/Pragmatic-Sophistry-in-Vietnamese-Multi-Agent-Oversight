@@ -1,0 +1,12 @@
+base_id,issue
+pay-002,vi_missing_risk_term
+pay-002,cs_missing_risk_term
+pay-003,cs_missing_risk_term
+lend-001,vi_missing_risk_term
+lend-001,cs_missing_risk_term
+acct-001,cs_missing_risk_term
+acct-002,cs_missing_risk_term
+acct-004,vi_missing_risk_term
+acct-004,cs_missing_risk_term
+acct-005,vi_missing_risk_term
+kyc-003,cs_missing_risk_term

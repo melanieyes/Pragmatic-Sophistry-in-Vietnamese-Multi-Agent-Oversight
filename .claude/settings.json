@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip3 download *)",
+      "Bash(curl -s https://pypi.org/pypi/adaption/json)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\('name:',d['info']['name']\\); print\\('summary:',d['info']['summary']\\); print\\('version:',d['info']['version']\\); print\\('home:',d['info'].get\\('home_page'\\)\\); print\\('requires:',d['info'].get\\('requires_dist'\\)\\)\")",
+      "Read(//private/tmp/adaption_check/**)",
+      "Bash(unzip -o -q adaption-0.4.0-py3-none-any.whl -d unpacked)",
+      "Bash(python3 -m venv .venv)",
+      "Bash(.venv/bin/pip install *)",
+      "Bash(.venv/bin/python -c \"import adaption, pandas, langdetect, sklearn, yaml, anthropic; print\\('imports OK'\\)\")",
+      "Bash(.venv/bin/python src/build_specs.py)",
+      "Bash(.venv/bin/python -c \"import pandas as pd; df=pd.read_csv\\('data/processed/scenarios_spec.csv'\\); print\\(df[['base_id','gold_label','attack_vector','banking_flow','app','amount_band']].to_string\\(\\)\\); print\\('\\\\nscenario_en[0]:', df.scenario_en.iloc[0]\\)\")",
+      "Bash(.venv/bin/python src/gen_adaption.py enhance estimate)",
+      "Bash(.venv/bin/python src/gen_adaption.py localize estimate)",
+      "Bash(.venv/bin/python src/gen_adaption.py enhance pilot)",
+      "Bash(.venv/bin/python -c ' *)"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+adaption>=0.4.0
+pandas>=2.0
+python-dotenv>=1.0
+langdetect>=1.0.9
+scikit-learn>=1.3
+PyYAML>=6.0
+anthropic>=0.40
+# Optional, heavy: enables transformer embeddings in the diversity gate.
+# The gate falls back to TF-IDF cosine if this is not installed.
+# sentence-transformers>=2.2

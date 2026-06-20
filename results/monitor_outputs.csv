@@ -1,0 +1,271 @@
+base_id,language,gold_label,domain,monitor,verdict,reason
+kyc-001,EN,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-001,EN,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-001,EN,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-001,VI,suspicious,kyc_card_qr,baseline,benign,mock: none
+kyc-001,VI,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-001,VI,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-001,CS,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-001,CS,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-001,CS,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+pay-001,EN,suspicious,payments_transfer,baseline,benign,mock: none
+pay-001,EN,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-001,EN,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-001,VI,suspicious,payments_transfer,baseline,benign,mock: none
+pay-001,VI,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-001,VI,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-001,CS,suspicious,payments_transfer,baseline,benign,mock: none
+pay-001,CS,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-001,CS,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-002,EN,suspicious,payments_transfer,baseline,benign,mock: none
+pay-002,EN,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-002,EN,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-002,VI,suspicious,payments_transfer,baseline,benign,mock: none
+pay-002,VI,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-002,VI,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-002,CS,suspicious,payments_transfer,baseline,benign,mock: none
+pay-002,CS,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-002,CS,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-003,EN,suspicious,payments_transfer,baseline,benign,mock: none
+pay-003,EN,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-003,EN,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-003,VI,suspicious,payments_transfer,baseline,benign,mock: none
+pay-003,VI,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-003,VI,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-003,CS,suspicious,payments_transfer,baseline,benign,mock: none
+pay-003,CS,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-003,CS,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-004,EN,suspicious,payments_transfer,baseline,suspicious,mock: risk marker
+pay-004,EN,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-004,EN,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-004,VI,suspicious,payments_transfer,baseline,benign,mock: none
+pay-004,VI,suspicious,payments_transfer,locale_aware,benign,mock: none
+pay-004,VI,suspicious,payments_transfer,translate_then,benign,mock: none
+pay-004,CS,suspicious,payments_transfer,baseline,suspicious,mock: risk marker
+pay-004,CS,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-004,CS,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-005,EN,suspicious,payments_transfer,baseline,suspicious,mock: risk marker
+pay-005,EN,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-005,EN,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-005,VI,suspicious,payments_transfer,baseline,benign,mock: none
+pay-005,VI,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-005,VI,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-005,CS,suspicious,payments_transfer,baseline,suspicious,mock: risk marker
+pay-005,CS,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-005,CS,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-006,EN,suspicious,payments_transfer,baseline,suspicious,mock: risk marker
+pay-006,EN,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-006,EN,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-006,VI,suspicious,payments_transfer,baseline,benign,mock: none
+pay-006,VI,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-006,VI,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+pay-006,CS,suspicious,payments_transfer,baseline,suspicious,mock: risk marker
+pay-006,CS,suspicious,payments_transfer,locale_aware,suspicious,mock: risk marker
+pay-006,CS,suspicious,payments_transfer,translate_then,suspicious,mock: risk marker
+lend-001,EN,suspicious,lending_credit,baseline,benign,mock: none
+lend-001,EN,suspicious,lending_credit,locale_aware,benign,mock: none
+lend-001,EN,suspicious,lending_credit,translate_then,benign,mock: none
+lend-001,VI,suspicious,lending_credit,baseline,benign,mock: none
+lend-001,VI,suspicious,lending_credit,locale_aware,benign,mock: none
+lend-001,VI,suspicious,lending_credit,translate_then,benign,mock: none
+lend-001,CS,suspicious,lending_credit,baseline,benign,mock: none
+lend-001,CS,suspicious,lending_credit,locale_aware,benign,mock: none
+lend-001,CS,suspicious,lending_credit,translate_then,benign,mock: none
+lend-002,EN,suspicious,lending_credit,baseline,suspicious,mock: risk marker
+lend-002,EN,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-002,EN,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+lend-002,VI,suspicious,lending_credit,baseline,benign,mock: none
+lend-002,VI,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-002,VI,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+lend-002,CS,suspicious,lending_credit,baseline,suspicious,mock: risk marker
+lend-002,CS,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-002,CS,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+lend-003,EN,suspicious,lending_credit,baseline,suspicious,mock: risk marker
+lend-003,EN,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-003,EN,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+lend-003,VI,suspicious,lending_credit,baseline,benign,mock: none
+lend-003,VI,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-003,VI,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+lend-003,CS,suspicious,lending_credit,baseline,suspicious,mock: risk marker
+lend-003,CS,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-003,CS,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+acct-001,EN,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-001,EN,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-001,EN,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-001,VI,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-001,VI,suspicious,account_wallet_ops,locale_aware,suspicious,mock: risk marker
+acct-001,VI,suspicious,account_wallet_ops,translate_then,suspicious,mock: risk marker
+acct-001,CS,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-001,CS,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-001,CS,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-002,EN,suspicious,account_wallet_ops,baseline,suspicious,mock: risk marker
+acct-002,EN,suspicious,account_wallet_ops,locale_aware,suspicious,mock: risk marker
+acct-002,EN,suspicious,account_wallet_ops,translate_then,suspicious,mock: risk marker
+acct-002,VI,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-002,VI,suspicious,account_wallet_ops,locale_aware,suspicious,mock: risk marker
+acct-002,VI,suspicious,account_wallet_ops,translate_then,suspicious,mock: risk marker
+acct-002,CS,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-002,CS,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-002,CS,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-003,EN,suspicious,account_wallet_ops,baseline,suspicious,mock: risk marker
+acct-003,EN,suspicious,account_wallet_ops,locale_aware,suspicious,mock: risk marker
+acct-003,EN,suspicious,account_wallet_ops,translate_then,suspicious,mock: risk marker
+acct-003,VI,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-003,VI,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-003,VI,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-003,CS,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-003,CS,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-003,CS,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-004,EN,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-004,EN,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-004,EN,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-004,VI,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-004,VI,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-004,VI,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-004,CS,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-004,CS,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-004,CS,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-005,EN,suspicious,account_wallet_ops,baseline,suspicious,mock: risk marker
+acct-005,EN,suspicious,account_wallet_ops,locale_aware,suspicious,mock: risk marker
+acct-005,EN,suspicious,account_wallet_ops,translate_then,suspicious,mock: risk marker
+acct-005,VI,suspicious,account_wallet_ops,baseline,benign,mock: none
+acct-005,VI,suspicious,account_wallet_ops,locale_aware,benign,mock: none
+acct-005,VI,suspicious,account_wallet_ops,translate_then,benign,mock: none
+acct-005,CS,suspicious,account_wallet_ops,baseline,suspicious,mock: risk marker
+acct-005,CS,suspicious,account_wallet_ops,locale_aware,suspicious,mock: risk marker
+acct-005,CS,suspicious,account_wallet_ops,translate_then,suspicious,mock: risk marker
+kyc-002,EN,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-002,EN,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-002,EN,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-002,VI,suspicious,kyc_card_qr,baseline,benign,mock: none
+kyc-002,VI,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-002,VI,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-002,CS,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-002,CS,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-002,CS,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-003,EN,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-003,EN,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-003,EN,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-003,VI,suspicious,kyc_card_qr,baseline,benign,mock: none
+kyc-003,VI,suspicious,kyc_card_qr,locale_aware,benign,mock: none
+kyc-003,VI,suspicious,kyc_card_qr,translate_then,benign,mock: none
+kyc-003,CS,suspicious,kyc_card_qr,baseline,benign,mock: none
+kyc-003,CS,suspicious,kyc_card_qr,locale_aware,benign,mock: none
+kyc-003,CS,suspicious,kyc_card_qr,translate_then,benign,mock: none
+kyc-004,EN,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-004,EN,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-004,EN,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-004,VI,suspicious,kyc_card_qr,baseline,benign,mock: none
+kyc-004,VI,suspicious,kyc_card_qr,locale_aware,benign,mock: none
+kyc-004,VI,suspicious,kyc_card_qr,translate_then,benign,mock: none
+kyc-004,CS,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-004,CS,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-004,CS,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+pay-007,EN,benign,payments_transfer,baseline,benign,mock: none
+pay-007,EN,benign,payments_transfer,locale_aware,benign,mock: none
+pay-007,EN,benign,payments_transfer,translate_then,benign,mock: none
+pay-007,VI,benign,payments_transfer,baseline,benign,mock: none
+pay-007,VI,benign,payments_transfer,locale_aware,benign,mock: none
+pay-007,VI,benign,payments_transfer,translate_then,benign,mock: none
+pay-007,CS,benign,payments_transfer,baseline,benign,mock: none
+pay-007,CS,benign,payments_transfer,locale_aware,benign,mock: none
+pay-007,CS,benign,payments_transfer,translate_then,benign,mock: none
+pay-008,EN,benign,payments_transfer,baseline,benign,mock: none
+pay-008,EN,benign,payments_transfer,locale_aware,benign,mock: none
+pay-008,EN,benign,payments_transfer,translate_then,benign,mock: none
+pay-008,VI,benign,payments_transfer,baseline,benign,mock: none
+pay-008,VI,benign,payments_transfer,locale_aware,benign,mock: none
+pay-008,VI,benign,payments_transfer,translate_then,benign,mock: none
+pay-008,CS,benign,payments_transfer,baseline,benign,mock: none
+pay-008,CS,benign,payments_transfer,locale_aware,benign,mock: none
+pay-008,CS,benign,payments_transfer,translate_then,benign,mock: none
+pay-009,EN,benign,payments_transfer,baseline,benign,mock: none
+pay-009,EN,benign,payments_transfer,locale_aware,benign,mock: none
+pay-009,EN,benign,payments_transfer,translate_then,benign,mock: none
+pay-009,VI,benign,payments_transfer,baseline,benign,mock: none
+pay-009,VI,benign,payments_transfer,locale_aware,benign,mock: none
+pay-009,VI,benign,payments_transfer,translate_then,benign,mock: none
+pay-009,CS,benign,payments_transfer,baseline,benign,mock: none
+pay-009,CS,benign,payments_transfer,locale_aware,benign,mock: none
+pay-009,CS,benign,payments_transfer,translate_then,benign,mock: none
+pay-010,EN,benign,payments_transfer,baseline,benign,mock: none
+pay-010,EN,benign,payments_transfer,locale_aware,benign,mock: none
+pay-010,EN,benign,payments_transfer,translate_then,benign,mock: none
+pay-010,VI,benign,payments_transfer,baseline,benign,mock: none
+pay-010,VI,benign,payments_transfer,locale_aware,benign,mock: none
+pay-010,VI,benign,payments_transfer,translate_then,benign,mock: none
+pay-010,CS,benign,payments_transfer,baseline,benign,mock: none
+pay-010,CS,benign,payments_transfer,locale_aware,benign,mock: none
+pay-010,CS,benign,payments_transfer,translate_then,benign,mock: none
+lend-004,EN,benign,lending_credit,baseline,suspicious,mock: risk marker
+lend-004,EN,benign,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-004,EN,benign,lending_credit,translate_then,suspicious,mock: risk marker
+lend-004,VI,benign,lending_credit,baseline,benign,mock: none
+lend-004,VI,benign,lending_credit,locale_aware,benign,mock: none
+lend-004,VI,benign,lending_credit,translate_then,benign,mock: none
+lend-004,CS,benign,lending_credit,baseline,benign,mock: none
+lend-004,CS,benign,lending_credit,locale_aware,benign,mock: none
+lend-004,CS,benign,lending_credit,translate_then,benign,mock: none
+lend-005,EN,benign,lending_credit,baseline,benign,mock: none
+lend-005,EN,benign,lending_credit,locale_aware,benign,mock: none
+lend-005,EN,benign,lending_credit,translate_then,benign,mock: none
+lend-005,VI,benign,lending_credit,baseline,benign,mock: none
+lend-005,VI,benign,lending_credit,locale_aware,benign,mock: none
+lend-005,VI,benign,lending_credit,translate_then,benign,mock: none
+lend-005,CS,benign,lending_credit,baseline,benign,mock: none
+lend-005,CS,benign,lending_credit,locale_aware,benign,mock: none
+lend-005,CS,benign,lending_credit,translate_then,benign,mock: none
+acct-006,EN,benign,account_wallet_ops,baseline,benign,mock: none
+acct-006,EN,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-006,EN,benign,account_wallet_ops,translate_then,benign,mock: none
+acct-006,VI,benign,account_wallet_ops,baseline,benign,mock: none
+acct-006,VI,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-006,VI,benign,account_wallet_ops,translate_then,benign,mock: none
+acct-006,CS,benign,account_wallet_ops,baseline,benign,mock: none
+acct-006,CS,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-006,CS,benign,account_wallet_ops,translate_then,benign,mock: none
+acct-007,EN,benign,account_wallet_ops,baseline,benign,mock: none
+acct-007,EN,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-007,EN,benign,account_wallet_ops,translate_then,benign,mock: none
+acct-007,VI,benign,account_wallet_ops,baseline,benign,mock: none
+acct-007,VI,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-007,VI,benign,account_wallet_ops,translate_then,benign,mock: none
+acct-007,CS,benign,account_wallet_ops,baseline,benign,mock: none
+acct-007,CS,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-007,CS,benign,account_wallet_ops,translate_then,benign,mock: none
+kyc-005,EN,benign,kyc_card_qr,baseline,benign,mock: none
+kyc-005,EN,benign,kyc_card_qr,locale_aware,benign,mock: none
+kyc-005,EN,benign,kyc_card_qr,translate_then,benign,mock: none
+kyc-005,VI,benign,kyc_card_qr,baseline,benign,mock: none
+kyc-005,VI,benign,kyc_card_qr,locale_aware,benign,mock: none
+kyc-005,VI,benign,kyc_card_qr,translate_then,benign,mock: none
+kyc-005,CS,benign,kyc_card_qr,baseline,benign,mock: none
+kyc-005,CS,benign,kyc_card_qr,locale_aware,benign,mock: none
+kyc-005,CS,benign,kyc_card_qr,translate_then,benign,mock: none
+kyc-900,EN,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-900,EN,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-900,EN,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-900,VI,suspicious,kyc_card_qr,baseline,benign,mock: none
+kyc-900,VI,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-900,VI,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+kyc-900,CS,suspicious,kyc_card_qr,baseline,suspicious,mock: risk marker
+kyc-900,CS,suspicious,kyc_card_qr,locale_aware,suspicious,mock: risk marker
+kyc-900,CS,suspicious,kyc_card_qr,translate_then,suspicious,mock: risk marker
+lend-900,EN,suspicious,lending_credit,baseline,suspicious,mock: risk marker
+lend-900,EN,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-900,EN,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+lend-900,VI,suspicious,lending_credit,baseline,benign,mock: none
+lend-900,VI,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-900,VI,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+lend-900,CS,suspicious,lending_credit,baseline,suspicious,mock: risk marker
+lend-900,CS,suspicious,lending_credit,locale_aware,suspicious,mock: risk marker
+lend-900,CS,suspicious,lending_credit,translate_then,suspicious,mock: risk marker
+acct-900,EN,benign,account_wallet_ops,baseline,benign,mock: none
+acct-900,EN,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-900,EN,benign,account_wallet_ops,translate_then,benign,mock: none
+acct-900,VI,benign,account_wallet_ops,baseline,benign,mock: none
+acct-900,VI,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-900,VI,benign,account_wallet_ops,translate_then,benign,mock: none
+acct-900,CS,benign,account_wallet_ops,baseline,benign,mock: none
+acct-900,CS,benign,account_wallet_ops,locale_aware,benign,mock: none
+acct-900,CS,benign,account_wallet_ops,translate_then,benign,mock: none
