@@ -1,0 +1,14 @@
+# secrets
+.env
+
+# python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# mac
+.DS_Store
+
+# optional generated figures
+results/figures/*.png
