@@ -46,16 +46,24 @@ RISK_TERMS = [
 VIOLATION_VERBS = ["bypass", "override", "bỏ qua", "ghi đè", "giả mạo", "unauthor", "fraud"]
 
 
+# Informal / slang markers that signal the aggressive-obfuscation pass actually ran (v2).
+SLANG_MARKERS = [
+    "củ", "lít", "lát", "xị", "tỏi", "bắn", "ck", "tk", "lách", "lụi", "thông",
+    "ẩn", "khỏi cần", "cho qua", "ông anh", "die", "auth", "bypass", "verify",
+    "approve", "limit", "token", "transfer", "account",
+]
+
+
 def _norm(t: str) -> str:
     return " ".join(str(t).split()).lower()
 
 
-def hard_checks(df: pd.DataFrame) -> None:
-    assert len(df) == 30, f"expected 30 rows, got {len(df)}"
+def hard_checks(df: pd.DataFrame, n_total: int = 30, n_susp: int = 20, n_benign: int = 10) -> None:
+    assert len(df) == n_total, f"expected {n_total} rows, got {len(df)}"
     assert df["base_id"].is_unique, "base_id not unique"
     counts = df["gold_label"].value_counts().to_dict()
-    assert counts.get("suspicious") == 20, f"expected 20 suspicious, got {counts.get('suspicious')}"
-    assert counts.get("benign") == 10, f"expected 10 benign, got {counts.get('benign')}"
+    assert counts.get("suspicious") == n_susp, f"expected {n_susp} suspicious, got {counts.get('suspicious')}"
+    assert counts.get("benign") == n_benign, f"expected {n_benign} benign, got {counts.get('benign')}"
 
     for col in FINAL_COLS:
         empty = df[df[col].isna() | (df[col].astype(str).str.strip() == "")]
@@ -99,6 +107,47 @@ def soft_checks(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(warnings)
 
 
+def oracle_gate(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """v2 integrity gate: every row must be oracle-confirmed gold-consistent.
+
+    Returns (failures, soft_warnings). Raises if the oracle file is missing.
+    """
+    path = DATA_PROCESSED / "oracle_100.csv"
+    if not path.exists():
+        raise SystemExit(f"oracle gate requires {path.name}; run src/oracle_check.py first")
+    ora = pd.read_csv(path)
+    fails = ora[ora["gold_consistent"] != True]  # noqa: E712 (handles bool/str/NaN)
+
+    warnings = []
+    for _, r in df.iterrows():
+        vi = _norm(r["scenario_vi"])
+        if not any(m in vi for m in SLANG_MARKERS):
+            warnings.append({"base_id": r["base_id"], "issue": "vi_no_obfuscation_marker"})
+    return fails, pd.DataFrame(warnings)
+
+
+def main_v2() -> int:
+    df = pd.read_csv(DATA_PROCESSED / "dataset_100.csv")
+    hard_checks(df, n_total=100, n_susp=60, n_benign=40)
+
+    fails, warn = oracle_gate(df)
+    warn_path = RESULTS / "validation_warnings_100.csv"
+    warn.to_csv(warn_path, index=False)
+
+    if len(fails):
+        print(f"[validate] [v2] ORACLE GATE FAILED: {len(fails)} gold-inconsistent rows "
+              f"-> review/regenerate before proceeding:")
+        print(fails[["base_id", "lang", "gold", "same_action", "still_violation",
+                     "recovered_action"]].to_string(index=False))
+        return 1
+
+    print(f"[validate] [v2] HARD checks + oracle gate passed. "
+          f"Obfuscation warnings: {len(warn)} (see {warn_path.name})")
+    if len(warn):
+        print(warn.to_string(index=False))
+    return 0
+
+
 def main() -> int:
     df = pd.read_csv(DATA_PROCESSED / "dataset_30.csv")
     hard_checks(df)
@@ -112,4 +161,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    if "--version" in sys.argv and sys.argv[sys.argv.index("--version") + 1] == "v2":
+        raise SystemExit(main_v2())
     raise SystemExit(main())

@@ -91,6 +91,56 @@ def _parse_localize_json(text: str) -> tuple[str, str]:
         return "", ""
 
 
+def _parse_generate_json(text: str) -> dict:
+    """Extract the 4 v2 keys from the single-run JSON completion."""
+    keys = ("enhanced_completion", "scenario_vi_literal", "scenario_vi", "scenario_cs")
+    if not isinstance(text, str) or not text.strip():
+        return {k: "" for k in keys}
+    cleaned = re.sub(r"^```(json)?|```$", "", text.strip(), flags=re.MULTILINE).strip()
+    m = re.search(r"\{.*\}", cleaned, flags=re.DOTALL)
+    blob = m.group(0) if m else cleaned
+    try:
+        obj = json.loads(blob)
+        return {k: str(obj.get(k, "")).strip() for k in keys}
+    except Exception:
+        return {k: "" for k in keys}
+
+
+def build_v2() -> None:
+    """Assemble dataset_100.csv from the single Adaption `generate` run."""
+    from gen_adaption import ANALYSIS_PROMPT_TEMPLATE  # authored enhanced_prompt
+
+    spec = pd.read_csv(DATA_PROCESSED / "scenarios_spec_100.csv")
+    raw = pd.read_csv(DATA_PROCESSED / "generate_raw.csv")
+
+    gm = _join_to_specs(spec[["base_id", "scenario_en", "domain", "gold_label"]], raw, "generate")
+    comp = _pick_col(raw, "enhanced_completion", "completion")
+    if comp is None:
+        raise SystemExit(f"generate output missing completion col: {list(raw.columns)}")
+    parsed = gm[comp].map(_parse_generate_json)
+
+    out = spec[["base_id", "scenario_en", "gold_label", "domain"]].copy()
+    out["enhanced_prompt"] = out["scenario_en"].map(
+        lambda s: ANALYSIS_PROMPT_TEMPLATE.format(scenario_en=s))
+    out["enhanced_completion"] = [p["enhanced_completion"] for p in parsed]
+    out["scenario_vi"] = [p["scenario_vi"] for p in parsed]
+    out["scenario_cs"] = [p["scenario_cs"] for p in parsed]
+    final = out[FINAL_COLS]
+
+    csv_path = DATA_PROCESSED / "dataset_100.csv"
+    jsonl_path = DATA_PROCESSED / "dataset_100.jsonl"
+    final.to_csv(csv_path, index=False)
+    final.to_json(jsonl_path, orient="records", lines=True, force_ascii=False)
+
+    # Sidecar: difficulty (from spec) + faithful VI, for analysis — not in the 8-col deliverable.
+    meta = spec[["base_id", "gold_label", "domain", "difficulty", "attack_vector"]].copy()
+    meta["scenario_vi_literal"] = [p["scenario_vi_literal"] for p in parsed]
+    meta.to_csv(DATA_PROCESSED / "dataset_100_meta.csv", index=False)
+
+    print(f"[build_dataset] [v2] wrote {len(final)} rows -> {csv_path.name} + {jsonl_path.name} "
+          f"(+ dataset_100_meta.csv)")
+
+
 def load_gold() -> pd.DataFrame:
     gold = read_yaml(DATA_RAW / "gold_scenarios.yaml")
     rows = []
@@ -152,4 +202,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if "--version" in sys.argv and sys.argv[sys.argv.index("--version") + 1] == "v2":
+        build_v2()
+    else:
+        main()

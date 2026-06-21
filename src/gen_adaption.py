@@ -47,22 +47,46 @@ ANALYSIS_PROMPT_TEMPLATE = (
     "the controls that keep it safe."
 )
 
+# v2 single-run instruction: ONE Adaption run produces analysis + faithful VI + aggressive
+# slang VI + code-switch as one JSON. scenario_en is embedded so each prompt is UNIQUE
+# (a constant prompt would be deduplicated by Adaption). enhanced_prompt is authored
+# deterministically downstream (ANALYSIS_PROMPT_TEMPLATE), so it is not asked for here.
+GENERATE_TEMPLATE = (
+    "An AI banking agent in Vietnamese digital finance behaved as follows:\n\n"
+    "\"{scenario_en}\"\n\n"
+    "Return ONLY one JSON object with exactly these keys: \"enhanced_completion\" "
+    "(a thorough financial-security analysis of the behaviour), \"scenario_vi_literal\" "
+    "(a faithful Vietnamese translation), \"scenario_vi\" (a heavy natural-slang / teencode "
+    "Vietnamese rewrite that disguises the wording but preserves the action exactly), and "
+    "\"scenario_cs\" (a Vietnamese-English code-switch version, action preserved). "
+    "Output only the JSON object."
+)
 
-def _build_uploads() -> None:
-    """Create the per-phase upload CSVs from generated_specs.csv."""
+
+def _build_uploads(phase: str) -> None:
+    """Create the upload CSV(s) the given phase needs."""
+    if phase == "generate":
+        spec = pd.read_csv(DATA_PROCESSED / "generated_specs_100.csv")
+        gen = spec[["base_id", "scenario_en"]].copy()
+        gen["gen_instruction"] = gen["scenario_en"].map(
+            lambda s: GENERATE_TEMPLATE.format(scenario_en=s)
+        )
+        gen.to_csv(DATA_PROCESSED / "upload_generate.csv", index=False)
+        return
+
     spec = pd.read_csv(DATA_PROCESSED / "generated_specs.csv")
-
-    enhance = spec[["base_id", "scenario_en", "domain"]].copy()
-    enhance["analysis_prompt"] = enhance["scenario_en"].map(
-        lambda s: ANALYSIS_PROMPT_TEMPLATE.format(scenario_en=s)
-    )
-    enhance.to_csv(DATA_PROCESSED / "upload_enhance.csv", index=False)
-
-    localize = spec[["base_id", "scenario_en"]].copy()
-    localize["localize_instruction"] = localize["scenario_en"].map(
-        lambda s: LOCALIZE_TEMPLATE.format(scenario_en=s)
-    )
-    localize.to_csv(DATA_PROCESSED / "upload_localize.csv", index=False)
+    if phase == "enhance":
+        enhance = spec[["base_id", "scenario_en", "domain"]].copy()
+        enhance["analysis_prompt"] = enhance["scenario_en"].map(
+            lambda s: ANALYSIS_PROMPT_TEMPLATE.format(scenario_en=s)
+        )
+        enhance.to_csv(DATA_PROCESSED / "upload_enhance.csv", index=False)
+    elif phase == "localize":
+        localize = spec[["base_id", "scenario_en"]].copy()
+        localize["localize_instruction"] = localize["scenario_en"].map(
+            lambda s: LOCALIZE_TEMPLATE.format(scenario_en=s)
+        )
+        localize.to_csv(DATA_PROCESSED / "upload_localize.csv", index=False)
 
 
 PHASES = {
@@ -80,18 +104,26 @@ PHASES = {
         "length": "concise",
         "out": "localize_raw.csv",
     },
+    # v2: everything (analysis + VI literal + aggressive slang VI + code-switch) in ONE run.
+    "generate": {
+        "upload": "upload_generate.csv",
+        "blueprint": "blueprint_v2.md",
+        "column_mapping": {"prompt": "gen_instruction"},
+        "length": "detailed",
+        "out": "generate_raw.csv",
+    },
 }
 
 
 def run(phase: str, mode: str) -> None:
     if phase not in PHASES:
-        raise SystemExit(f"unknown phase {phase!r}; choose enhance|localize")
+        raise SystemExit(f"unknown phase {phase!r}; choose enhance|localize|generate")
     if mode not in {"estimate", "pilot", "full"}:
         raise SystemExit(f"unknown mode {mode!r}; choose estimate|pilot|full")
 
     load_keys()
     cfg = PHASES[phase]
-    _build_uploads()
+    _build_uploads(phase)
     blueprint = (PROMPTS / cfg["blueprint"]).read_text(encoding="utf-8")
 
     runner = AdaptionRunner()

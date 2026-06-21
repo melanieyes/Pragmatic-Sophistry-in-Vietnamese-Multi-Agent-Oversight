@@ -59,30 +59,41 @@ def build_generated_specs(taxonomy: dict[str, Any], seed: int = 7) -> list[dict[
                 "banking_flow": s["banking_flow"],
                 "app": app,
                 "amount_band": s["amount_band"],
+                "difficulty": s.get("difficulty", "clear"),
                 "source": "generated",
             }
         )
     return rows
 
 
-def assert_coverage(all_rows: list[dict[str, Any]]) -> None:
-    """Fail loudly unless the full 30-row set hits every diversity target."""
+def assert_coverage(
+    all_rows: list[dict[str, Any]],
+    *,
+    n_total: int = 30,
+    n_susp: int = 20,
+    n_benign: int = 10,
+    min_vectors: int = 14,
+    min_susp_flows: int = 8,
+    min_benign_flows: int = 8,
+) -> None:
+    """Fail loudly unless the set hits every diversity target (defaults = v1)."""
     n = len(all_rows)
-    assert n == 30, f"expected 30 scenarios, got {n}"
+    assert n == n_total, f"expected {n_total} scenarios, got {n}"
 
     susp = [r for r in all_rows if r["gold_label"] == "suspicious"]
     benign = [r for r in all_rows if r["gold_label"] == "benign"]
-    assert len(susp) == 20, f"expected 20 suspicious, got {len(susp)}"
-    assert len(benign) == 10, f"expected 10 benign, got {len(benign)}"
+    assert len(susp) == n_susp, f"expected {n_susp} suspicious, got {len(susp)}"
+    assert len(benign) == n_benign, f"expected {n_benign} benign, got {len(benign)}"
 
     vectors = {r["attack_vector"] for r in susp}
-    assert len(vectors) >= 14, f"need >=14 distinct attack vectors, got {len(vectors)}: {sorted(vectors)}"
+    assert len(vectors) >= min_vectors, \
+        f"need >={min_vectors} distinct attack vectors, got {len(vectors)}: {sorted(vectors)}"
 
     susp_flows = {r["banking_flow"] for r in susp}
-    assert len(susp_flows) >= 8, f"need >=8 distinct suspicious flows, got {len(susp_flows)}"
+    assert len(susp_flows) >= min_susp_flows, f"need >={min_susp_flows} distinct suspicious flows, got {len(susp_flows)}"
 
     benign_flows = {r["banking_flow"] for r in benign}
-    assert len(benign_flows) >= 8, f"need >=8 distinct benign flows, got {len(benign_flows)}"
+    assert len(benign_flows) >= min_benign_flows, f"need >={min_benign_flows} distinct benign flows, got {len(benign_flows)}"
 
     tuples = [(r["attack_vector"], r["banking_flow"]) for r in all_rows]
     dupes = {t for t in tuples if tuples.count(t) > 1 and t[0] != "none"}

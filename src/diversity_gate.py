@@ -25,9 +25,9 @@ THRESHOLD = 0.85
 LANG_COLS = ["scenario_en", "scenario_vi", "scenario_cs"]
 
 
-def near_duplicates(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
+def _near_dup_cols(df: pd.DataFrame, threshold: float, cols: list[str]) -> pd.DataFrame:
     flagged = []
-    for col in LANG_COLS:
+    for col in cols:
         texts = df[col].astype(str).tolist()
         sim = cosine_sim_matrix(embed(texts))
         for i, j in combinations(range(len(df)), 2):
@@ -42,6 +42,10 @@ def near_duplicates(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
                     }
                 )
     return pd.DataFrame(flagged)
+
+
+def near_duplicates(df: pd.DataFrame, threshold: float) -> pd.DataFrame:
+    return _near_dup_cols(df, threshold, LANG_COLS)
 
 
 def coverage_asserts(spec: pd.DataFrame) -> list[str]:
@@ -60,11 +64,16 @@ def coverage_asserts(spec: pd.DataFrame) -> list[str]:
     return errs
 
 
-def main(threshold: float = THRESHOLD) -> int:
-    df = pd.read_csv(DATA_PROCESSED / "dataset_30.csv")
-    spec = pd.read_csv(DATA_PROCESSED / "scenarios_spec.csv")
-
-    flagged = near_duplicates(df, threshold)
+def main(threshold: float = THRESHOLD, version: str = "v1") -> int:
+    if version == "v2":
+        # Before credits: only scenario_en exists, so dedup on EN seeds in the spec.
+        spec = pd.read_csv(DATA_PROCESSED / "scenarios_spec_100.csv")
+        df = spec[["base_id", "scenario_en"]].copy()
+        flagged = _near_dup_cols(df, threshold, ["scenario_en"])
+    else:
+        df = pd.read_csv(DATA_PROCESSED / "dataset_30.csv")
+        spec = pd.read_csv(DATA_PROCESSED / "scenarios_spec.csv")
+        flagged = near_duplicates(df, threshold)
     regen = sorted(set(flagged["base_id_a"]).union(flagged["base_id_b"])) if not flagged.empty else []
     pd.DataFrame({"base_id": regen}).to_csv(RESULTS / "regenerate_list.csv", index=False)
     flagged.to_csv(RESULTS / "near_duplicates.csv", index=False)
@@ -82,5 +91,7 @@ def main(threshold: float = THRESHOLD) -> int:
 
 
 if __name__ == "__main__":
-    thr = float(sys.argv[1]) if len(sys.argv) > 1 else THRESHOLD
-    raise SystemExit(main(thr))
+    ver = sys.argv[sys.argv.index("--version") + 1] if "--version" in sys.argv else "v1"
+    pos = [a for a in sys.argv[1:] if not a.startswith("--") and a not in ("v1", "v2")]
+    thr = float(pos[0]) if pos else THRESHOLD
+    raise SystemExit(main(thr, version=ver))

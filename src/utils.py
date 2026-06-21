@@ -46,6 +46,8 @@ def load_keys() -> dict[str, str]:
     return {
         "adaption": os.environ.get("ADAPTION_API_KEY", ""),
         "anthropic": os.environ.get("ANTHROPIC_API_KEY", ""),
+        "gemini": os.environ.get("GEMINI_API_KEY", "") or os.environ.get("GOOGLE_API_KEY", ""),
+        "deepseek": os.environ.get("DEEPSEEK_API_KEY", ""),
     }
 
 
@@ -236,6 +238,85 @@ def anthropic_complete(
         kwargs["system"] = system
     resp = client.messages.create(**kwargs)
     return "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
+
+
+def gemini_complete(
+    prompt: str,
+    system: str = "",
+    model: str = "gemini-2.5-flash",
+    max_tokens: int = 1024,
+    json_output: bool = False,
+    api_key: Optional[str] = None,
+) -> str:
+    import google.generativeai as genai
+
+    genai.configure(api_key=api_key or os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"))
+    gm = genai.GenerativeModel(model, system_instruction=system or None)
+    cfg = {"max_output_tokens": max_tokens, "temperature": 0.0}
+    if json_output:
+        cfg["response_mime_type"] = "application/json"
+
+    import time as _t
+
+    last_err = None
+    for attempt in range(5):  # retry transient errors / rate limits with backoff
+        try:
+            resp = gm.generate_content(prompt, generation_config=cfg)
+            try:
+                return resp.text or ""
+            except Exception:
+                parts = []
+                for cand in getattr(resp, "candidates", []) or []:
+                    for p in getattr(getattr(cand, "content", None), "parts", []) or []:
+                        parts.append(getattr(p, "text", ""))
+                return "".join(parts)
+        except Exception as e:  # noqa: BLE001 - includes ResourceExhausted (429)
+            last_err = e
+            _t.sleep(min(2 ** attempt, 30))
+    raise RuntimeError(f"gemini_complete failed after retries: {last_err}")
+
+
+def deepseek_complete(
+    prompt: str,
+    system: str = "",
+    model: str = "deepseek-chat",
+    max_tokens: int = 1024,
+    json_output: bool = False,
+    api_key: Optional[str] = None,
+) -> str:
+    """DeepSeek via its OpenAI-compatible endpoint."""
+    import time as _t
+
+    from openai import OpenAI
+
+    client = OpenAI(api_key=api_key or os.environ.get("DEEPSEEK_API_KEY"),
+                    base_url="https://api.deepseek.com")
+    messages = ([{"role": "system", "content": system}] if system else []) + \
+               [{"role": "user", "content": prompt}]
+    kwargs: dict[str, Any] = {"model": model, "messages": messages,
+                              "max_tokens": max_tokens, "temperature": 0.0}
+    if json_output:
+        kwargs["response_format"] = {"type": "json_object"}
+
+    last_err = None
+    for attempt in range(5):
+        try:
+            resp = client.chat.completions.create(**kwargs)
+            return resp.choices[0].message.content or ""
+        except Exception as e:  # noqa: BLE001 - rate limits / transient
+            last_err = e
+            _t.sleep(min(2 ** attempt, 30))
+    raise RuntimeError(f"deepseek_complete failed after retries: {last_err}")
+
+
+def llm_complete(prompt: str, system: str = "", provider: str = "gemini", **kw) -> str:
+    """Dispatch to the configured monitor LLM provider."""
+    if provider == "gemini":
+        return gemini_complete(prompt, system=system, **kw)
+    if provider == "deepseek":
+        return deepseek_complete(prompt, system=system, **kw)
+    kw.pop("json_output", None)  # not supported by the anthropic helper
+    return anthropic_complete(prompt, system=system, **kw)
 
 
 # --------------------------------------------------------------------------- #

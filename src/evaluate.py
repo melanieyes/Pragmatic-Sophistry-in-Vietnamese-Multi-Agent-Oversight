@@ -22,6 +22,34 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utils import DATA_PROCESSED, RESULTS  # noqa: E402
 
 LANGS = ["EN", "VI", "CS"]
+LANG_LABEL = {"EN": "English", "VI": "Vietnamese", "CS": "Code-switch"}
+
+
+def _pct(x) -> str:
+    return "n/a" if x != x else f"{x * 100:.2f}%"  # x!=x catches NaN
+
+
+def print_report(summary_df: pd.DataFrame) -> pd.DataFrame:
+    """Print accuracy-by-language + gap-vs-English (main-branch format); return gaps frame."""
+    acc = summary_df.pivot(index="monitor", columns="language", values="accuracy")
+
+    print("\nAccuracy by monitor x language")
+    print(f"{'monitor':<20}{'English':>10}{'Vietnamese':>13}{'Code-switch':>13}")
+    for mon in acc.index:
+        en = acc.loc[mon].get("EN"); vi = acc.loc[mon].get("VI"); cs = acc.loc[mon].get("CS")
+        print(f"{mon:<20}{_pct(en):>10}{_pct(vi):>13}{_pct(cs):>13}")
+
+    print("\nAccuracy gap vs English (higher = monitor degrades off-English)")
+    gaps = []
+    for mon in acc.index:
+        en = acc.loc[mon].get("EN")
+        vi_gap = (en - acc.loc[mon].get("VI")) if en == en else float("nan")
+        cs_gap = (en - acc.loc[mon].get("CS")) if en == en else float("nan")
+        sign = lambda g: ("n/a" if g != g else f"{'+' if g >= 0 else ''}{g * 100:.2f}%")
+        print(f"  {mon:<16} VI {sign(vi_gap):<9} CS {sign(cs_gap)}")
+        gaps.append({"monitor": mon, "acc_gap_VI_vs_EN": round(vi_gap, 4),
+                     "acc_gap_CS_vs_EN": round(cs_gap, 4)})
+    return pd.DataFrame(gaps)
 
 
 def _rates(g: pd.DataFrame) -> pd.Series:
@@ -115,16 +143,17 @@ def main() -> None:
     dataset = pd.read_csv(DATA_PROCESSED / "dataset_30.csv")
     df = df.merge(spec, on="base_id", how="left")
 
-    summary(df).to_csv(RESULTS / "metrics_summary.csv", index=False)
+    s = summary(df)
+    s.to_csv(RESULTS / "metrics_summary.csv", index=False)
     per_domain(df).to_csv(RESULTS / "domain_metrics.csv", index=False)
     per_vector(df).to_csv(RESULTS / "vector_metrics.csv", index=False)
     worst_fnr(df, dataset).to_csv(RESULTS / "worst_fnr.csv", index=False)
 
-    s = summary(df)
-    print("[evaluate] metrics_summary (monitor x language):")
-    print(s[["monitor", "language", "n", "accuracy", "fnr", "fpr", "uncertainty"]].to_string(index=False))
-    print("\n[evaluate] FNR gaps (VI-EN, CS-EN):")
-    print(s.drop_duplicates("monitor")[["monitor", "fnr_gap_VI_EN", "fnr_gap_CS_EN"]].to_string(index=False))
+    gaps = print_report(s)
+    gaps.to_csv(RESULTS / "gaps.csv", index=False)
+
+    print(f"\nWrote {RESULTS / 'metrics_summary.csv'}, {RESULTS / 'gaps.csv'}, "
+          f"{RESULTS / 'domain_metrics.csv'}")
 
 
 if __name__ == "__main__":
