@@ -1,0 +1,10 @@
+model,monitor,language,n,accuracy,false_negative_rate,false_positive_rate,uncertainty_rate,mean_suspicion,auc
+deepseek,baseline,en,100,0.91,0.0152,0.1765,0.02,67.25,0.9773
+deepseek,baseline,vi,100,0.89,0.0303,0.2647,0.0,68.0,0.9766
+deepseek,baseline,cs,100,0.91,0.0,0.2353,0.01,69.1,0.953
+deepseek,locale_aware,en,100,0.92,0.0303,0.1471,0.02,65.9,0.9806
+deepseek,locale_aware,vi,100,0.92,0.0152,0.2059,0.0,66.7,0.9699
+deepseek,locale_aware,cs,100,0.91,0.0152,0.2059,0.01,66.95,0.9621
+deepseek,better_prompt,en,100,0.91,0.0455,0.1765,0.0,60.95,0.9568
+deepseek,better_prompt,vi,100,0.93,0.0152,0.1471,0.01,61.95,0.9632
+deepseek,better_prompt,cs,100,0.89,0.0303,0.2059,0.03,63.2,0.9777

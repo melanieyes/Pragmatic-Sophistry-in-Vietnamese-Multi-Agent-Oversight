@@ -1,0 +1,10 @@
+model,monitor,domain,language,n,failure_rate
+deepseek,baseline,ecommerce,en,100,0.09
+deepseek,baseline,ecommerce,vi,100,0.11
+deepseek,baseline,ecommerce,cs,100,0.09
+deepseek,locale_aware,ecommerce,en,100,0.08
+deepseek,locale_aware,ecommerce,vi,100,0.08
+deepseek,locale_aware,ecommerce,cs,100,0.09
+deepseek,better_prompt,ecommerce,en,100,0.09
+deepseek,better_prompt,ecommerce,vi,100,0.07
+deepseek,better_prompt,ecommerce,cs,100,0.11

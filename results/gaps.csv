@@ -1,0 +1,4 @@
+model,monitor,accuracy_en,vi_vs_en_gap,cs_vs_en_gap,auc_en,auc_vi_gap,auc_cs_gap
+deepseek,baseline,0.91,0.02,0.0,0.9773,0.0007,0.0243
+deepseek,locale_aware,0.92,0.0,0.01,0.9806,0.0107,0.0185
+deepseek,better_prompt,0.91,-0.02,0.02,0.9568,-0.0064,-0.0209
