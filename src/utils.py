@@ -192,6 +192,27 @@ def has_vi_function_word(text: str) -> bool:
     return any(w in low for w in VI_FUNCTION_WORDS)
 
 
+# Vietnamese-specific diacritic characters — the most robust signal that text is
+# Vietnamese, and (unlike a function-word whitelist) it survives heavy slang/teencode.
+_VI_DIACRITICS = set(
+    "àáảãạăằắẳẵặâầấẩẫậèéẻẽẹêềếểễệìíỉĩịòóỏõọôồốổỗộơờớởỡợùúủũụưừứửữựỳýỷỹỵđ"
+)
+
+
+def vi_diacritic_count(text: str) -> int:
+    return sum(1 for c in (text or "").lower() if c in _VI_DIACRITICS)
+
+
+def looks_vietnamese(text: str, min_diacritics: int = 3, max_english_ratio: float = 0.85) -> bool:
+    """True if text is recognisably Vietnamese even when written in heavy slang/teencode.
+
+    Diacritic presence is the primary signal (robust to informal spelling that drops
+    formal function words); the English-token ratio guards against an all-English string
+    that happens to contain a stray accented char.
+    """
+    return vi_diacritic_count(text) >= min_diacritics and english_token_ratio(text) <= max_english_ratio
+
+
 # --------------------------------------------------------------------------- #
 # Embeddings (sentence-transformers if available, else TF-IDF)
 # --------------------------------------------------------------------------- #

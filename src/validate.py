@@ -22,7 +22,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from utils import (  # noqa: E402
     DATA_PROCESSED, RESULTS, detect_lang, english_token_ratio,
-    has_en_tech_token, has_vi_function_word,
+    has_en_tech_token, has_vi_function_word, looks_vietnamese, vi_diacritic_count,
 )
 
 FINAL_COLS = [
@@ -58,7 +58,8 @@ def _norm(t: str) -> str:
     return " ".join(str(t).split()).lower()
 
 
-def hard_checks(df: pd.DataFrame, n_total: int = 30, n_susp: int = 20, n_benign: int = 10) -> None:
+def hard_checks(df: pd.DataFrame, n_total: int = 30, n_susp: int = 20, n_benign: int = 10,
+                v2: bool = False) -> None:
     assert len(df) == n_total, f"expected {n_total} rows, got {len(df)}"
     assert df["base_id"].is_unique, "base_id not unique"
     counts = df["gold_label"].value_counts().to_dict()
@@ -78,13 +79,21 @@ def hard_checks(df: pd.DataFrame, n_total: int = 30, n_susp: int = 20, n_benign:
             bad_ref.append(r["base_id"])
     assert not bad_ref, f"enhanced_prompt does not quote scenario_en for: {bad_ref}"
 
-    # language sanity
+    # language sanity. v2 obfuscation is heavy slang/teencode, so VI is detected by
+    # Vietnamese diacritics (robust) rather than a formal function-word whitelist.
     lang_err = []
     for _, r in df.iterrows():
-        if english_token_ratio(r["scenario_vi"]) > 0.6 or not has_vi_function_word(r["scenario_vi"]):
-            lang_err.append((r["base_id"], "vi_not_vietnamese"))
-        if not (has_en_tech_token(r["scenario_cs"]) and has_vi_function_word(r["scenario_cs"])):
-            lang_err.append((r["base_id"], "cs_not_codeswitch"))
+        if v2:
+            if not looks_vietnamese(r["scenario_vi"]):
+                lang_err.append((r["base_id"], "vi_not_vietnamese"))
+            cs = r["scenario_cs"]
+            if not (has_en_tech_token(cs) and (vi_diacritic_count(cs) >= 2 or has_vi_function_word(cs))):
+                lang_err.append((r["base_id"], "cs_not_codeswitch"))
+        else:
+            if english_token_ratio(r["scenario_vi"]) > 0.6 or not has_vi_function_word(r["scenario_vi"]):
+                lang_err.append((r["base_id"], "vi_not_vietnamese"))
+            if not (has_en_tech_token(r["scenario_cs"]) and has_vi_function_word(r["scenario_cs"])):
+                lang_err.append((r["base_id"], "cs_not_codeswitch"))
         if detect_lang(r["scenario_en"]) not in ("en", "unknown"):
             lang_err.append((r["base_id"], "en_not_english"))
     assert not lang_err, f"language sanity failures: {lang_err}"
@@ -107,43 +116,57 @@ def soft_checks(df: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(warnings)
 
 
-def oracle_gate(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+def oracle_gate(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """v2 integrity gate: every row must be oracle-confirmed gold-consistent.
 
-    Returns (failures, soft_warnings). Raises if the oracle file is missing.
+    Disagreement is split by difficulty: on the `clear`/`subtle` tiers a mismatch means
+    the obfuscation likely dropped/added the violation (real label drift -> HARD FAIL).
+    On the `ambiguous` tier a ~50 case where the oracle leans the other way is expected,
+    so it is surfaced as a review note, not a failure.
+
+    Returns (hard_fails, ambiguous_flags, obfuscation_warnings).
     """
     path = DATA_PROCESSED / "oracle_100.csv"
     if not path.exists():
         raise SystemExit(f"oracle gate requires {path.name}; run src/oracle_check.py first")
     ora = pd.read_csv(path)
-    fails = ora[ora["gold_consistent"] != True]  # noqa: E712 (handles bool/str/NaN)
+
+    meta = pd.read_csv(DATA_PROCESSED / "dataset_100_meta.csv")[["base_id", "difficulty"]]
+    ora = ora.merge(meta, on="base_id", how="left")
+    bad = ora[ora["gold_consistent"] != True]  # noqa: E712 (handles bool/str/NaN)
+    hard_fails = bad[bad["difficulty"] != "ambiguous"]
+    ambiguous_flags = bad[bad["difficulty"] == "ambiguous"]
 
     warnings = []
     for _, r in df.iterrows():
         vi = _norm(r["scenario_vi"])
         if not any(m in vi for m in SLANG_MARKERS):
             warnings.append({"base_id": r["base_id"], "issue": "vi_no_obfuscation_marker"})
-    return fails, pd.DataFrame(warnings)
+    return hard_fails, ambiguous_flags, pd.DataFrame(warnings)
 
 
 def main_v2() -> int:
     df = pd.read_csv(DATA_PROCESSED / "dataset_100.csv")
-    hard_checks(df, n_total=100, n_susp=60, n_benign=40)
+    hard_checks(df, n_total=100, n_susp=60, n_benign=40, v2=True)
 
-    fails, warn = oracle_gate(df)
+    hard_fails, ambiguous_flags, warn = oracle_gate(df)
     warn_path = RESULTS / "validation_warnings_100.csv"
     warn.to_csv(warn_path, index=False)
 
-    if len(fails):
-        print(f"[validate] [v2] ORACLE GATE FAILED: {len(fails)} gold-inconsistent rows "
-              f"-> review/regenerate before proceeding:")
-        print(fails[["base_id", "lang", "gold", "same_action", "still_violation",
-                     "recovered_action"]].to_string(index=False))
+    cols = ["base_id", "lang", "gold", "same_action", "still_violation", "recovered_action"]
+    if len(hard_fails):
+        print(f"[validate] [v2] ORACLE GATE FAILED: {len(hard_fails)} clear/subtle "
+              f"gold-inconsistent rows (real label drift) -> regenerate before proceeding:")
+        print(hard_fails[cols].to_string(index=False))
         return 1
 
-    print(f"[validate] [v2] HARD checks + oracle gate passed. "
-          f"Obfuscation warnings: {len(warn)} (see {warn_path.name})")
+    print(f"[validate] [v2] HARD checks + oracle gate passed.")
+    if len(ambiguous_flags):
+        print(f"\n[validate] [v2] {len(ambiguous_flags)} AMBIGUOUS-tier rows where the oracle "
+              f"leaned the other way (expected on this tier; review manually, not a failure):")
+        print(ambiguous_flags[cols].to_string(index=False))
     if len(warn):
+        print(f"\n[validate] [v2] obfuscation warnings: {len(warn)} (see {warn_path.name})")
         print(warn.to_string(index=False))
     return 0
 
