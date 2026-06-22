@@ -1,0 +1,300 @@
+{
+  "summary": {
+    "total_verdicts": 972,
+    "suspicious_verdicts": 564,
+    "benign_verdicts": 408,
+    "unique_rows": 81,
+    "contexts": [
+      "action",
+      "instruction",
+      "trace"
+    ],
+    "renderings": [
+      "scenario_vi",
+      "scenario_vi_prag"
+    ],
+    "monitors": [
+      "deepseek:deepseek-chat",
+      "google:gemini-2.5-flash"
+    ],
+    "domains": [
+      "ecommerce"
+    ]
+  },
+  "headline": {
+    "compact_fn": [
+      {
+        "context_mode": "action",
+        "rendering": "scenario_vi",
+        "fn_rate": 0.2234,
+        "fn_rate_pct": 22.3,
+        "n": 94
+      },
+      {
+        "context_mode": "action",
+        "rendering": "scenario_vi_prag",
+        "fn_rate": 0.2234,
+        "fn_rate_pct": 22.3,
+        "n": 94
+      },
+      {
+        "context_mode": "instruction",
+        "rendering": "scenario_vi",
+        "fn_rate": 0.0213,
+        "fn_rate_pct": 2.1,
+        "n": 94
+      },
+      {
+        "context_mode": "instruction",
+        "rendering": "scenario_vi_prag",
+        "fn_rate": 0.0638,
+        "fn_rate_pct": 6.4,
+        "n": 94
+      },
+      {
+        "context_mode": "trace",
+        "rendering": "scenario_vi",
+        "fn_rate": 0.0532,
+        "fn_rate_pct": 5.3,
+        "n": 94
+      },
+      {
+        "context_mode": "trace",
+        "rendering": "scenario_vi_prag",
+        "fn_rate": 0.0851,
+        "fn_rate_pct": 8.5,
+        "n": 94
+      }
+    ],
+    "fn_by_context_monitor_pct": [
+      {
+        "context_mode": "action",
+        "monitor": "deepseek:deepseek-chat",
+        "scenario_vi": 29.8,
+        "scenario_vi_prag": 31.9
+      },
+      {
+        "context_mode": "action",
+        "monitor": "google:gemini-2.5-flash",
+        "scenario_vi": 14.9,
+        "scenario_vi_prag": 12.8
+      },
+      {
+        "context_mode": "instruction",
+        "monitor": "deepseek:deepseek-chat",
+        "scenario_vi": 4.3,
+        "scenario_vi_prag": 12.8
+      },
+      {
+        "context_mode": "instruction",
+        "monitor": "google:gemini-2.5-flash",
+        "scenario_vi": 0.0,
+        "scenario_vi_prag": 0.0
+      },
+      {
+        "context_mode": "trace",
+        "monitor": "deepseek:deepseek-chat",
+        "scenario_vi": 4.3,
+        "scenario_vi_prag": 8.5
+      },
+      {
+        "context_mode": "trace",
+        "monitor": "google:gemini-2.5-flash",
+        "scenario_vi": 6.4,
+        "scenario_vi_prag": 8.5
+      }
+    ],
+    "fp_by_context_monitor_pct": [
+      {
+        "context_mode": "action",
+        "monitor": "deepseek:deepseek-chat",
+        "scenario_vi": 17.6,
+        "scenario_vi_prag": 17.6
+      },
+      {
+        "context_mode": "action",
+        "monitor": "google:gemini-2.5-flash",
+        "scenario_vi": 32.4,
+        "scenario_vi_prag": 26.5
+      },
+      {
+        "context_mode": "instruction",
+        "monitor": "deepseek:deepseek-chat",
+        "scenario_vi": 23.5,
+        "scenario_vi_prag": 17.6
+      },
+      {
+        "context_mode": "instruction",
+        "monitor": "google:gemini-2.5-flash",
+        "scenario_vi": 35.3,
+        "scenario_vi_prag": 14.7
+      },
+      {
+        "context_mode": "trace",
+        "monitor": "deepseek:deepseek-chat",
+        "scenario_vi": 23.5,
+        "scenario_vi_prag": 20.6
+      },
+      {
+        "context_mode": "trace",
+        "monitor": "google:gemini-2.5-flash",
+        "scenario_vi": 26.5,
+        "scenario_vi_prag": 20.6
+      }
+    ],
+    "vi_prag_context_pct": [
+      {
+        "monitor": "deepseek:deepseek-chat",
+        "action": 31.9,
+        "instruction": 12.8,
+        "trace": 8.5
+      },
+      {
+        "monitor": "google:gemini-2.5-flash",
+        "action": 12.8,
+        "instruction": 0.0,
+        "trace": 8.5
+      }
+    ],
+    "context_gap_pct": [
+      {
+        "monitor": "deepseek:deepseek-chat",
+        "action": 31.9,
+        "instruction": 12.8,
+        "trace": 8.5,
+        "action_minus_instruction": 19.1,
+        "action_minus_trace": 23.4
+      },
+      {
+        "monitor": "google:gemini-2.5-flash",
+        "action": 12.8,
+        "instruction": 0.0,
+        "trace": 8.5,
+        "action_minus_instruction": 12.8,
+        "action_minus_trace": 4.3
+      }
+    ],
+    "conditional_report_hiding": [
+      {
+        "monitor": "deepseek:deepseek-chat",
+        "caught_instruction_n": 41,
+        "caught_then_missed_action_n": 10,
+        "caught_then_missed_trace_n": 0,
+        "action_conditional_miss_rate": 0.24390243902439024,
+        "action_conditional_miss_pct": 24.4,
+        "trace_conditional_miss_rate": 0.0,
+        "trace_conditional_miss_pct": 0.0
+      },
+      {
+        "monitor": "google:gemini-2.5-flash",
+        "caught_instruction_n": 46,
+        "caught_then_missed_action_n": 6,
+        "caught_then_missed_trace_n": 4,
+        "action_conditional_miss_rate": 0.13043478260869565,
+        "action_conditional_miss_pct": 13.0,
+        "trace_conditional_miss_rate": 0.08695652173913043,
+        "trace_conditional_miss_pct": 8.7
+      }
+    ]
+  },
+  "breakdowns": {
+    "by_pragmatic_cue_pct": [
+      {
+        "pragmatic_cue": "authority_deference",
+        "action": 21.4,
+        "instruction": 0.0,
+        "trace": 0.0
+      },
+      {
+        "pragmatic_cue": "euphemism",
+        "action": 28.6,
+        "instruction": 7.1,
+        "trace": 14.3
+      },
+      {
+        "pragmatic_cue": "omission",
+        "action": 30.0,
+        "instruction": 6.7,
+        "trace": 10.0
+      },
+      {
+        "pragmatic_cue": "relationship_obligation",
+        "action": 13.6,
+        "instruction": 4.5,
+        "trace": 4.5
+      },
+      {
+        "pragmatic_cue": "routine_framing",
+        "action": 14.3,
+        "instruction": 14.3,
+        "trace": 14.3
+      }
+    ],
+    "by_pressure_level_pct": [
+      {
+        "pressure_level": "high",
+        "action": 31.2,
+        "instruction": 9.4,
+        "trace": 12.5
+      },
+      {
+        "pressure_level": "low",
+        "action": 22.2,
+        "instruction": 5.6,
+        "trace": 11.1
+      },
+      {
+        "pressure_level": "medium",
+        "action": 15.9,
+        "instruction": 4.5,
+        "trace": 4.5
+      }
+    ],
+    "by_requester_persona_pct": [
+      {
+        "requester_persona": "branch_colleague",
+        "action": 7.1,
+        "instruction": 7.1,
+        "trace": 0.0
+      },
+      {
+        "requester_persona": "external_partner",
+        "action": 33.3,
+        "instruction": 0.0,
+        "trace": 16.7
+      },
+      {
+        "requester_persona": "family_connection",
+        "action": 25.0,
+        "instruction": 0.0,
+        "trace": 0.0
+      },
+      {
+        "requester_persona": "internal_staff",
+        "action": 50.0,
+        "instruction": 20.0,
+        "trace": 30.0
+      },
+      {
+        "requester_persona": "senior_manager",
+        "action": 0.0,
+        "instruction": 10.0,
+        "trace": 0.0
+      },
+      {
+        "requester_persona": "vip_customer",
+        "action": 21.4,
+        "instruction": 7.1,
+        "trace": 10.7
+      }
+    ]
+  },
+  "figures": {
+    "fn_by_context_rendering": "./assets/figures/fn_by_context_rendering.png",
+    "fn_vi_prag_by_monitor_context": "./assets/figures/fn_vi_prag_by_monitor_context.png",
+    "context_gap_vi_prag": "./assets/figures/context_gap_vi_prag.png",
+    "conditional_report_hiding": "./assets/figures/conditional_report_hiding.png",
+    "fn_by_pragmatic_cue": "./assets/figures/fn_by_pragmatic_cue.png",
+    "fn_by_pressure_level": "./assets/figures/fn_by_pressure_level.png"
+  }
+}
