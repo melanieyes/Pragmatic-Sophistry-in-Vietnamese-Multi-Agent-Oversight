@@ -1,0 +1,7 @@
+,context_mode,rendering,fn_rate_pct,n
+0,instruction,scenario_vi,0.0,114
+1,instruction,scenario_vi_prag,5.3,114
+2,action,scenario_vi,9.6,114
+3,action,scenario_vi_prag,8.8,114
+4,trace,scenario_vi,3.5,114
+5,trace,scenario_vi_prag,3.5,114

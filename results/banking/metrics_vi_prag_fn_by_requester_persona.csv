@@ -1,0 +1,7 @@
+requester_persona,action,instruction,trace
+branch_colleague,0.0,0.0,0.0
+external_partner,5.6,16.7,5.6
+family_connection,22.2,5.6,0.0
+internal_staff,12.5,6.2,6.2
+senior_manager,11.1,0.0,11.1
+vip_customer,4.5,4.5,0.0

@@ -5,7 +5,7 @@ four SDKs behind a uniform call. --mock returns deterministic fake responses
 (no network, $0) whose shape mirrors the hypothesis so a mock run produces
 illustrative metrics. Real model strings live in agents.py.
 """
-import os, re, json, random, hashlib
+import os, re, json, random, hashlib, time
 from functools import lru_cache
 from pathlib import Path
 from dotenv import load_dotenv
@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR    = ROOT / "data"
 PROMPTS_DIR = ROOT / "prompts"
-RESULTS_DIR = ROOT / "results"
+RESULTS_DIR = ROOT / "results" / os.environ.get("RESULTS_SUBDIR", "")
 
 # Load keys from .env — check vi-prag-bench/.env first, then the repo root.
 # override=True so a real key in .env wins over a stale placeholder already
@@ -48,9 +48,31 @@ def _google():
 
 
 # --------------------------------------------------------------------------
+MODEL_MAX_RETRIES = int(os.environ.get("MODEL_MAX_RETRIES", "5"))
+
+
 def call_model(provider, model, system, user, mock=False, tag=""):
+    """Dispatch one model call with retry/backoff.
+
+    The pipeline now issues calls concurrently (ThreadPoolExecutor), so a single
+    transient 429/5xx must not crash a whole row. Retry with exponential backoff
+    + jitter; re-raise the last error only after exhausting attempts.
+    """
     if mock:
         return _mock(tag, system, user)
+
+    last_err = None
+    for attempt in range(MODEL_MAX_RETRIES):
+        try:
+            return _call_once(provider, model, system, user)
+        except Exception as e:  # noqa: BLE001 — transient API errors under concurrency
+            last_err = e
+            if attempt < MODEL_MAX_RETRIES - 1:
+                time.sleep(min(2 ** attempt, 30) + random.random())
+    raise last_err
+
+
+def _call_once(provider, model, system, user):
     if provider in ("openai", "deepseek"):
         client = _openai() if provider == "openai" else _deepseek()
         r = client.chat.completions.create(

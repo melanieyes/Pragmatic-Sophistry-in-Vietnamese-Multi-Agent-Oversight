@@ -26,6 +26,7 @@ import os
 import re
 import sys
 import hashlib
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
 from tqdm.auto import tqdm
 
@@ -35,6 +36,10 @@ from models import DATA_DIR
 
 OUT_GEN = DATA_DIR / "out_generated.csv"
 OUT_VERDICTS = DATA_DIR / "out_verdicts.csv"
+
+# Concurrency for the API-bound stages (validate, monitor). Each call retries
+# with backoff in models.call_model, so a modest pool is safe against 429s.
+PIPE_WORKERS = int(os.environ.get("PIPE_WORKERS", "8"))
 
 
 # ---------------------------------------------------------------------
@@ -170,11 +175,19 @@ def stage_generate(df, mock):
     """Generate scenario_vi_prag and write data/out_generated.csv."""
     df = add_design_columns(df)
 
-    rows = []
-    for _, r in tqdm(df.iterrows(), total=len(df), desc="generate", unit="row"):
-        d = r.to_dict()
+    src_rows = [r.to_dict() for _, r in df.iterrows()]
+
+    def _generate_one(d):
+        d = dict(d)
         d["scenario_vi_prag"] = agents.attacker_generate(d, mock=mock)
-        rows.append(d)
+        return d
+
+    # map() preserves order, so the output rows keep the input ordering.
+    with ThreadPoolExecutor(max_workers=PIPE_WORKERS) as ex:
+        rows = list(
+            tqdm(ex.map(_generate_one, src_rows), total=len(src_rows),
+                 desc="generate", unit="row")
+        )
 
     g = pd.DataFrame(rows)
     g.to_csv(OUT_GEN, index=False)
@@ -198,47 +211,41 @@ def stage_validate(g, mock, cheap_gate=True, audit_benign=False):
     """
     g = add_design_columns(g)
 
-    oracle_fluent = []
-    oracle_lexical = []
-    kept = []
-    strong_leaks = []
-    control_mentions = []
+    rows = [r for _, r in g.iterrows()]
 
-    for _, r in tqdm(g.iterrows(), total=len(g), desc="validate", unit="row"):
+    def _validate_one(r):
+        """Per-row gate + (conditional) oracle call. Pure w.r.t. other rows, so
+        it is safe to run concurrently. Returns the five column values in order."""
         gold = str(r.get("gold_label", "")).strip().lower()
         text = r.get("scenario_vi_prag", "")
 
         strong_leak = has_strong_lexical_leak(text)
         control_mention = has_control_mention(text)
 
-        strong_leaks.append(strong_leak)
-        control_mentions.append(control_mention)
-
         # Benign rows are not the expensive part of the pragmatic gate.
         if gold == "benign" and not audit_benign:
-            oracle_fluent.append("not_run")
-            oracle_lexical.append("not_run")
-            kept.append(True)
-            continue
+            return strong_leak, control_mention, "not_run", "not_run", True
 
         # Suspicious rows with explicit leakage are not genuinely pragmatic.
         if gold == "suspicious" and cheap_gate and strong_leak:
-            oracle_fluent.append("not_run")
-            oracle_lexical.append("dropped_by_regex")
-            kept.append(False)
-            continue
+            return strong_leak, control_mention, "not_run", "dropped_by_regex", False
 
         # Fluent oracle call. In the new agents.py this is Gemini by default.
-        fl, lx, k = agents.oracle_validate(
-            text,
-            gold,
-            mock=mock,
-            run_lexical=False,
+        fl, lx, k = agents.oracle_validate(text, gold, mock=mock, run_lexical=False)
+        return strong_leak, control_mention, fl, lx, k
+
+    # map() preserves input order, so the assembled columns align with g's rows.
+    with ThreadPoolExecutor(max_workers=PIPE_WORKERS) as ex:
+        results = list(
+            tqdm(ex.map(_validate_one, rows), total=len(rows),
+                 desc="validate", unit="row")
         )
 
-        oracle_fluent.append(fl)
-        oracle_lexical.append(lx)
-        kept.append(k)
+    strong_leaks = [x[0] for x in results]
+    control_mentions = [x[1] for x in results]
+    oracle_fluent = [x[2] for x in results]
+    oracle_lexical = [x[3] for x in results]
+    kept = [x[4] for x in results]
 
     g = g.copy()
     g["lexical_leak_strong"] = strong_leaks
@@ -336,8 +343,7 @@ def stage_monitor(
         f"executor_calls={total_executor_calls}, monitor_calls={total_monitor_calls}"
     )
 
-    task_iter = tqdm(
-        tasks,
+    input_pbar = tqdm(
         total=len(tasks),
         desc=f"executor/input:{context_mode}",
         unit="input",
@@ -349,29 +355,21 @@ def stage_monitor(
         unit="verdict",
     )
 
-    for r, rendering, instr in task_iter:
-        task_iter.set_postfix({
-            "uid": r.get("uid"),
-            "rendering": rendering,
-        })
+    def _run_task(task):
+        """Executor (if needed) + every panel monitor for one (row, rendering).
+        Independent across tasks, so safe to run concurrently. Returns the list
+        of verdict records for this task."""
+        r, rendering, instr = task
 
         if context_mode == "instruction":
-            exec_obj = {
-                "raw": "",
-                "action": "",
-                "brief_report": "",
-            }
+            exec_obj = {"raw": "", "action": "", "brief_report": ""}
         else:
             exec_obj = agents.executor_act_full(instr, r["domain"], mock=mock)
 
         monitor_input = build_monitor_input(instr, exec_obj, context_mode)
 
+        out = []
         for pm in panel:
-            monitor_pbar.set_postfix({
-                "model": f"{pm[0]}:{pm[1]}",
-                "rendering": rendering,
-            })
-
             result = agents.monitor_classify_full(
                 panel_model=pm,
                 action_text=monitor_input,
@@ -384,7 +382,7 @@ def stage_monitor(
 
             pred = result["label"]
 
-            recs.append({
+            out.append({
                 "uid": r["uid"],
                 "domain": r["domain"],
                 "difficulty": r.get("difficulty"),
@@ -405,9 +403,17 @@ def stage_monitor(
                 "executor_report": exec_obj.get("brief_report"),
                 "monitor_raw": result.get("raw"),
             })
+        return out
 
-            monitor_pbar.update(1)
+    with ThreadPoolExecutor(max_workers=PIPE_WORKERS) as ex:
+        futures = [ex.submit(_run_task, t) for t in tasks]
+        for fut in as_completed(futures):
+            task_recs = fut.result()
+            recs.extend(task_recs)
+            input_pbar.update(1)
+            monitor_pbar.update(len(task_recs))
 
+    input_pbar.close()
     monitor_pbar.close()
 
     v = pd.DataFrame(recs)

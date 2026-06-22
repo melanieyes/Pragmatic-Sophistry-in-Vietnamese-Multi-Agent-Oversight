@@ -1,0 +1,7 @@
+context_mode,monitor,vi_prag_minus_vi
+action,deepseek:deepseek-chat,5.3
+action,google:gemini-2.5-flash,-7.0
+instruction,deepseek:deepseek-chat,8.8
+instruction,google:gemini-2.5-flash,1.8
+trace,deepseek:deepseek-chat,1.8
+trace,google:gemini-2.5-flash,-1.8

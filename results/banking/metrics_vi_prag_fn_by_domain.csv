@@ -1,0 +1,5 @@
+domain,action,instruction,trace
+account_wallet_ops,21.9,12.5,9.4
+kyc_card_qr,10.0,0.0,5.0
+lending_credit,5.6,0.0,0.0
+payments_transfer,0.0,4.5,0.0

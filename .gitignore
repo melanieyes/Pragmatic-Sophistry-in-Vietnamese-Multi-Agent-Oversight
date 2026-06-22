@@ -8,3 +8,6 @@ __pycache__/
 
 # pipeline outputs (regenerated)
 data/out_*.csv
+
+# macOS
+.DS_Store

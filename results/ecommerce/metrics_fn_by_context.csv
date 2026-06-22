@@ -1,0 +1,7 @@
+context_mode,monitor,scenario_vi,scenario_vi_prag
+action,deepseek:deepseek-chat,29.8,31.9
+action,google:gemini-2.5-flash,14.9,12.8
+instruction,deepseek:deepseek-chat,4.3,12.8
+instruction,google:gemini-2.5-flash,0.0,0.0
+trace,deepseek:deepseek-chat,4.3,8.5
+trace,google:gemini-2.5-flash,6.4,8.5
