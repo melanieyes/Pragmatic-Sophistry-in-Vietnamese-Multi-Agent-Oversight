@@ -2,13 +2,9 @@
 .env
 
 # python
-__pycache__/
-*.py[cod]
 .venv/
-venv/
+__pycache__/
+*.pyc
 
-# mac
-.DS_Store
-
-# optional generated figures
-results/figures/*.png
+# pipeline outputs (regenerated)
+data/out_*.csv

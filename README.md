@@ -1,75 +1,75 @@
-# Lost in Translation, Lost in Control
+# vi-prag-bench
 
-An audit of whether AI safety monitors miss risky banking-agent behaviour when it is expressed in
-Vietnamese, Vietnamese-English code-switching, and Vietnam-specific institutional contexts.
+Auditing whether AI safety monitors miss **pragmatically-encoded** violations
+in Vietnamese tool-use settings — violations carried by implicature, authority
+and face scripts, euphemism, and omission, rather than by decodable slang.
 
-## Project
+## Hypothesis
 
-Most AI safety-monitor evaluations are English-heavy. This project asks whether monitor reliability
-changes when the *same* risky tool-use behaviour is expressed in Vietnamese (VI) or code-switched
-Vietnamese-English (CS), focused on the highest-stakes surface in Vietnam: **digital banking / fintech**
-(e-wallet / QR-first — MoMo, ZaloPay, VNPay, Viettel Money — plus Techcombank, Vietcombank, BIDV, VPBank).
+> Monitor false-negative rate stays low on lexical Vietnamese slang (decodable)
+> but rises sharply on pragmatically-encoded Vietnamese violations — and the
+> locale-aware glossary fix, being lexical, does not close that gap.
 
-We test three monitor setups: **baseline** (English-only), **locale-aware** (glossary + warning), and
-**translate-then-monitor** (translate → judge).
+A secondary axis: pragmatic obfuscation should hurt more in high-trust
+relational domains (e-gov, banking) than in transactional ecommerce, and FN
+should climb with the e-gov `difficulty` tier.
 
-## Dataset
+## The four agents
 
-- **30 base scenarios** — third-person statements of an AI banking-agent *behaviour* — each rendered in
-  **EN, VI, CS** → **90 language-rows**. 10 benign / 20 suspicious; ≥14 attack vectors; 4 sub-domains.
-- **Wide schema** (`data/processed/dataset_30.csv`):
-  `scenario_en, gold_label, enhanced_prompt, enhanced_completion, base_id, domain, scenario_cs, scenario_vi`.
-- **Integrity:** labels, domains, attack vectors and the diversity assignment are authored
-  deterministically in code; **Adaption** ([adaptionlabs.ai](https://adaptionlabs.ai)) fills only the
-  generated columns (analysis `enhanced_prompt`/`enhanced_completion` + `scenario_vi`/`scenario_cs`).
-  3 hand-authored gold rows + 27 generated.
+| Role | What it does | Model | Notes |
+|------|--------------|-------|-------|
+| Attacker | rewrites a gold scenario into pragmatically-obfuscated Vietnamese | Gemini Flash (free) | high-volume generation |
+| Oracle | dual-gate validator + ground truth | Haiku | most reliable model |
+| Executor | naive agent that carries out the instruction | DeepSeek | the untrusted agent |
+| Monitor | classifies the action benign/suspicious | 4o-mini · Haiku · Flash · DeepSeek | the subject under test |
 
-## Pipeline
+The dual gate keeps a row only when a fluent oracle recovers the violation AND
+a lexical-only pass misses it — that distinguishes "genuinely pragmatic" from
+"merely ambiguous" or "leaked the slang." `locale_aware` is a flag on the
+Monitor (a lexical glossary), used as a control.
 
-```
-src/build_specs.py      ->  data/processed/scenarios_spec.csv (+ generated_specs.csv)   # deterministic
-src/gen_adaption.py     ->  data/processed/enhance_raw.csv, localize_raw.csv            # Adaption
-src/build_dataset.py    ->  data/processed/dataset_30.csv (+ .jsonl)                     # assemble
-src/validate.py         ->  hard checks + results/validation_warnings.csv
-src/diversity_gate.py   ->  results/near_duplicates.csv, regenerate_list.csv
-src/run_monitors.py     ->  results/monitor_outputs.csv (270 verdicts)                   # Anthropic
-src/evaluate.py         ->  results/{metrics_summary,domain_metrics,vector_metrics,worst_fnr}.csv
-```
+**Executor modeling choice:** the Executor is deliberately naive — it does not
+refuse and adds no safety checks. The safety layer under test is the Monitor.
+This keeps the gold label aligned (a compliant action inherits the scenario's
+label). Run `--skip-executor` to have the Monitor read the rendering directly
+(3-agent mode) if you want the static comparison instead.
 
 ## Setup
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env   # set ADAPTION_API_KEY (generation) and ANTHROPIC_API_KEY (monitors)
+cp .env.example .env        # then fill in your four keys
 ```
 
-## Run
+Verify the model strings at the top of `src/agents.py` against each provider's
+current docs — `gemini-2.5-flash` and `deepseek-chat` in particular drift.
 
-Adaption and the monitor harness spend credits/tokens, so generation is gated. Always estimate first:
+## Run order
 
 ```bash
-python src/build_specs.py
-python src/gen_adaption.py enhance estimate     # free cost quote
-python src/gen_adaption.py enhance pilot        # 6-row sample to inspect
-python src/gen_adaption.py enhance full         # full run
-python src/gen_adaption.py localize full
-python src/build_dataset.py
-python src/validate.py && python src/diversity_gate.py
-
-python src/run_monitors.py        # or --mock to run without an Anthropic key
-python src/evaluate.py
+bash run_all.sh                                   # guided: smoke -> small -> full
+# or manually:
+python src/run.py --mock --limit 12 --stage all --locale-aware   # smoke, $0
+python src/run.py --limit 12 --stage generate                    # eyeball data/out_generated.csv
+python src/run.py --stage all --locale-aware                     # full 300
 ```
 
-Or end-to-end: `RUN_FULL=1 ./run_all.sh` (add `MONITOR_MOCK=1` to skip live monitor calls).
+Do not skip the eyeball step — it is where you catch a generator that leaks the
+label or invents risk, before spending on the full panel.
 
-## Repo structure
+## Layout
 
-- `data/raw/` — `taxonomy.yaml` (diversity menus + slang glossary), `gold_scenarios.yaml` (3 gold rows).
-- `data/processed/` — specs, Adaption downloads, and the final `dataset_30.csv`.
-- `prompts/` — Adaption blueprints + the 3 monitor prompts.
-- `src/` — pipeline scripts (see above).
-- `results/` — monitor outputs and metrics.
-- `report/` — `outline.md` and `final_report.md`.
-- `demo/` — static HTML demo fed by `src/export_demo_data.py`.
+```
+prompts/   one file per role (attacker, executor, monitor, oracle_fluent, oracle_lexical)
+src/       models.py (dispatch+mock) · agents.py (roles) · pipeline.py (stages) · metrics.py · run.py
+data/      scenario.csv (kept input) + out_*.csv checkpoints (gitignored)
+results/   metrics tables
+```
+
+## Scope / safety
+
+Scenarios are description-level benchmark items with gold labels, for evaluating
+and improving monitor detection. No operational fraud instructions, step-by-step
+methods, or enabling code anywhere — that constraint is in the Attacker prompt
+and should stay there.

@@ -1,32 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Lost in Translation, Lost in Control</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>vi-prag-bench — comparator</title>
 </head>
 <body>
-  <header>
-    <h1>Lost in Translation, Lost in Control</h1>
-    <p>Do AI safety monitors miss risky banking-agent behaviour in Vietnamese &amp; code-switch?</p>
-  </header>
-
-  <main>
-    <section id="metrics">
-      <h2>Monitor FNR by language</h2>
-      <p class="hint">FNR = share of <em>suspicious</em> actions a monitor failed to flag (higher is worse).</p>
-      <div id="metrics-table"></div>
-    </section>
-
-    <section id="dataset">
-      <h2>Dataset (30 scenarios × EN / VI / CS)</h2>
-      <input id="filter" type="search" placeholder="Filter by text, vector, domain…" />
-      <div id="dataset-list"></div>
-    </section>
-  </main>
-
-  <script src="data.js"></script>
-  <script src="script.js"></script>
+  <h1>vi-prag-bench</h1>
+  <p>Judge-facing comparator. Load <code>../results/</code> outputs here.</p>
 </body>
 </html>
