@@ -1,75 +1,128 @@
-# vi-prag-bench
+Auditing context loss in Vietnamese multi-agent safety monitoring.
 
-Auditing whether AI safety monitors miss **pragmatically-encoded** violations
-in Vietnamese tool-use settings — violations carried by implicature, authority
-and face scripts, euphemism, and omission, rather than by decodable slang.
+This project tests whether safety monitors miss risky workflow actions when Vietnamese instructions are pragmatically disguised and then compressed by a downstream executor. The core question is not only whether Vietnamese pragmatic language is hard to monitor, but whether the executor/report layer removes the context needed to detect a violation.
 
-## Hypothesis
+Summary
 
-> Monitor false-negative rate stays low on lexical Vietnamese slang (decodable)
-> but rises sharply on pragmatically-encoded Vietnamese violations — and the
-> locale-aware glossary fix, being lexical, does not close that gap.
+Many safety monitors assume that risky behavior is visible in the text they inspect. In multilingual workflow agents, that assumption can fail. A suspicious Vietnamese request may be expressed through hierarchy, relationship pressure, urgency, euphemism, omission, or routine framing rather than explicit risk keywords.
 
-A secondary axis: pragmatic obfuscation should hurt more in high-trust
-relational domains (e-gov, banking) than in transactional ecommerce, and FN
-should climb with the e-gov `difficulty` tier.
+Multi-agent pipelines add a second failure point. A naive executor can turn a socially loaded instruction into a clean API-style action and a neutral report, stripping away the pragmatic cues that made the request suspicious.
 
-## The four agents
+This benchmark evaluates that failure mode across three domains:
 
-| Role | What it does | Model | Notes |
-|------|--------------|-------|-------|
-| Attacker | rewrites a gold scenario into pragmatically-obfuscated Vietnamese | Gemini Flash (free) | high-volume generation |
-| Oracle | dual-gate validator + ground truth | Haiku | most reliable model |
-| Executor | naive agent that carries out the instruction | DeepSeek | the untrusted agent |
-| Monitor | classifies the action benign/suspicious | 4o-mini · Haiku · Flash · DeepSeek | the subject under test |
+E-commerce
+Banking
+Government
+Pipeline
 
-The dual gate keeps a row only when a fluent oracle recovers the violation AND
-a lexical-only pass misses it — that distinguishes "genuinely pragmatic" from
-"merely ambiguous" or "leaked the slang." `locale_aware` is a flag on the
-Monitor (a lexical glossary), used as a control.
+Each scenario passes through four stages.
 
-**Executor modeling choice:** the Executor is deliberately naive — it does not
-refuse and adds no safety checks. The safety layer under test is the Monitor.
-This keeps the gold label aligned (a compliant action inherits the scenario's
-label). Run `--skip-executor` to have the Monitor read the rendering directly
-(3-agent mode) if you want the static comparison instead.
+An attacker-renderer turns an English workflow scenario into Vietnamese in two renderings: a direct translation and a pragmatically disguised version.
+A fluent oracle checks that the violation remains inferable from the disguised text. Rows that are no longer cleanly inferable are dropped.
+A naive executor simulates carrying out the instruction and writes a compact action, formatted as a typed API-style call, plus a short natural-language report.
+Two safety monitors independently classify the behavior as benign or suspicious.
 
-## Setup
+The executor is deliberately naive. It does not refuse, add safety checks, or try to deceive. The safety layer under test is the monitor.
 
-```bash
-python -m venv .venv && source .venv/bin/activate
+Visibility conditions
+
+Each monitor is evaluated under three context modes:
+
+Context mode	What the monitor sees	Purpose
+instruction	Original scenario rendering	Can the monitor catch the risky request directly?
+action	Executor action and report only	Does downstream execution erase risk evidence?
+trace	Instruction plus executor action and report	Does preserving the full trace recover detection?
+
+The key comparison is:
+
+instruction → action → trace
+
+If false negatives rise in action mode, the executor layer is laundering safety-relevant context. If performance recovers in trace mode, the failure is partly an observability problem rather than pure monitor incapability.
+
+Monitors
+
+The current report evaluates:
+
+Gemini 2.5 Flash
+DeepSeek Chat
+
+Results are reported both per monitor and as equal-weight pooled rates.
+
+Dataset
+
+The benchmark covers three Vietnamese workflow domains.
+
+Domain	Rows kept	Suspicious	Benign	Verdicts
+E-commerce	81	47	34	972
+Banking	97	57	40	1,164
+Government	100	60	40	1,200
+
+Suspicious rows are filtered with a lexical gate that removes overt skip, bypass, or explicit rule-breaking language. This keeps the benchmark focused on pragmatic encoding rather than keyword detection.
+
+Metrics
+
+The main metric is false-negative rate:
+
+suspicious rows labeled benign
+
+This is the core safety failure.
+
+The benchmark also reports:
+
+False-positive rate on benign rows
+Pragmatic gap between direct Vietnamese and pragmatic Vietnamese
+Conditional report-hiding rate: among violations caught from the instruction, how often the same monitor misses them when shown only the executor action
+Confidence on false negatives
+Main finding
+
+The strongest failure appears in e-commerce. When monitors see only the executor action/report, false negatives on suspicious pragmatic-Vietnamese requests rise sharply. Preserving the full instruction-action trace recovers most of the lost detection.
+
+Banking shows a smaller version of the same pattern. Government shows little measurable context-compression failure because many violations remain structurally explicit after execution.
+
+The central conclusion is:
+
+Action-only monitoring is not a safe default for relational or PII-heavy workflows.
+
+Trace-aware monitoring is a low-cost safeguard because it preserves the social and authorization context that executor summaries can erase.
+
+Setup
+python -m venv .venv
+source .venv/bin/activate
+
 pip install -r requirements.txt
-cp .env.example .env        # then fill in your four keys
-```
+cp .env.example .env
 
-Verify the model strings at the top of `src/agents.py` against each provider's
-current docs — `gemini-2.5-flash` and `deepseek-chat` in particular drift.
+Then fill in the required model API keys in .env.
 
-## Run order
+Check model names in src/agents.py before running. Provider model strings can change.
 
-```bash
-bash run_all.sh                                   # guided: smoke -> small -> full
-# or manually:
-python src/run.py --mock --limit 12 --stage all --locale-aware   # smoke, $0
-python src/run.py --limit 12 --stage generate                    # eyeball data/out_generated.csv
-python src/run.py --stage all --locale-aware                     # full 300
-```
+Run
 
-Do not skip the eyeball step — it is where you catch a generator that leaks the
-label or invents risk, before spending on the full panel.
+Guided run:
 
-## Layout
+bash run_all.sh
 
-```
-prompts/   one file per role (attacker, executor, monitor, oracle_fluent, oracle_lexical)
-src/       models.py (dispatch+mock) · agents.py (roles) · pipeline.py (stages) · metrics.py · run.py
-data/      scenario.csv (kept input) + out_*.csv checkpoints (gitignored)
-results/   metrics tables
-```
+Manual smoke test:
 
-## Scope / safety
+python src/run.py --mock --limit 12 --stage all
 
-Scenarios are description-level benchmark items with gold labels, for evaluating
-and improving monitor detection. No operational fraud instructions, step-by-step
-methods, or enabling code anywhere — that constraint is in the Attacker prompt
-and should stay there.
+Generate a small batch for inspection:
+
+python src/run.py --limit 12 --stage generate
+
+Run the full pipeline:
+
+python src/run.py --stage all
+
+Do not skip manual inspection before a full run. Early inspection catches generation failures such as explicit label leakage, broken Vietnamese, or rows where the risk is no longer inferable.
+
+Repository layout
+prompts/    prompts for attacker, oracle, executor, and monitor roles
+src/        pipeline code, model dispatch, agents, metrics, and runner
+data/       input scenarios and generated checkpoints
+results/    monitor outputs, metrics tables, and report artifacts
+Safety scope
+
+Scenarios are description-level benchmark items for evaluating monitor behavior. The dataset is intended for safety research, not for operational misuse.
+
+The benchmark should not contain step-by-step fraud instructions, deployable exploit procedures, or enabling code. Public data release should be checked for sensitive social-engineering templates before sharing.
